@@ -15,6 +15,13 @@ static inline uint64_t ghe_status ()
   // 0b11: error
 }
 
+static inline uint64_t ghe_asR ()
+{
+  ROCC_INSTRUCTION_S (1, 0x01, 0x01);
+
+}
+
+
 
 static inline uint64_t ghe_top_func_opcode ()
 {
