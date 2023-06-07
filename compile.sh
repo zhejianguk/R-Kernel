@@ -36,14 +36,14 @@ if [[ $source_file != $null ]]; then
 		echo ">>Jessica:  Removing $source_file.riscv ";
 	fi
 
-	riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -O3 -c $source_file.c tasks.c
+	riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -c $source_file.c tasks.c
 
 	if [[ $malloc_flag != $null ]]; then
-		riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -static -Wl,--allow-multiple-definition -DUSE_PUBLIC_MALLOC_WRAPPERS ./malloc.o $source_file.o ./tasks.o -O3 -o $source_file.riscv
+		riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -static -Wl,--allow-multiple-definition -DUSE_PUBLIC_MALLOC_WRAPPERS ./malloc.o $source_file.o ./tasks.o -o $source_file.riscv
 	fi
 
 	if [[ $malloc_flag == $null ]]; then
-		riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -static -Wl,--allow-multiple-definition  $source_file.o ./tasks.o -O3 -o $source_file.riscv
+		riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -static -Wl,--allow-multiple-definition  $source_file.o ./tasks.o -o $source_file.riscv
 	fi
 	
 	echo ">>Jessica:  Generating $source_file.riscv ";
@@ -58,6 +58,6 @@ if [ $object_file != $null ]; then
 		echo ">>Jessica:  Removing $object_file.o ";
 	fi
 
-	riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -DUSE_PUBLIC_MALLOC_WRAPPERS -O3 -c $object_file.c 
+	riscv64-unknown-elf-gcc -fno-common -fno-builtin-printf -specs=htif_nano.specs -march=rv64imafd -DUSE_PUBLIC_MALLOC_WRAPPERS -c $object_file.c 
 	echo ">>Jessica:  Generating $object_file.o ";
 fi

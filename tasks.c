@@ -16,8 +16,9 @@ int checker (int hart_id)
 
   //================== Initialisation ==================//
   ghe_asR();
+  ght_set_satp_priv();
+
   ghe_initailised(1);
-  
   //===================== Execution =====================// 
 
   while (ghe_rsur_status() != 0x01 ){
