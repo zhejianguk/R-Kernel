@@ -23,7 +23,7 @@ int main(void)
   
   // Insepct load operations 
   // GID: 0x01 
-  // Func: 0x00; 0x01; 0x02; 0x03; 0x04; 0x05
+  // Func: 0x00; 0x01; 0x02; 0x03; 0x04; 0x05; 0x06
   // Opcode: 0x03
   // Data path: LDQ - 0x02
   ght_cfg_filter(0x01, 0x00, 0x03, 0x02); // lb
@@ -32,6 +32,8 @@ int main(void)
   ght_cfg_filter(0x01, 0x03, 0x03, 0x02); // ld
   ght_cfg_filter(0x01, 0x04, 0x03, 0x02); // lbu
   ght_cfg_filter(0x01, 0x05, 0x03, 0x02); // lhu
+  ght_cfg_filter(0x01, 0x06, 0x03, 0x02); // lwu
+
   // Func: 0x02; 0x03; 0x04
   // Opcode: 0x07
   // Data path: LDQ - 0x02
@@ -60,6 +62,17 @@ int main(void)
   // Map: GID == 0x02 to SE == 0x00
   ght_cfg_mapper(0x02, 0b0001);
 
+  // Insepct CSR read operations
+  // GID: 0x03
+  // Func: 0x02
+  // Opcode: 0x73
+  // Data path: PRFs - 0x01
+  ght_cfg_filter(0x03, 0x02, 0x73, 0x01);
+  // Map: GID == 0x03 to SE == 0x00
+  ght_cfg_mapper(0x03, 0b0001);
+
+
+
   // se: 00, end_id: 0x01, scheduling: rr, start_id: 0x01
   ght_cfg_se(0x00, 0x01, 0x01, 0x01);
 
@@ -69,7 +82,6 @@ int main(void)
   lock_acquire(&uart_lock);
   printf("C0: Test is now started: \r\n");
   lock_release(&uart_lock);
-  // ght_set_status (0x01); // start monitoring
   //===================== Execution =====================//
   uint64_t Hart_id = 0;
   asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
@@ -79,12 +91,20 @@ int main(void)
   float c = 0.3;
 
   /* Testing RCU */
-  float            d = (a + b + c) * 1.7 * 3.2;
+  float d = (a + b + c) * 1.7 * 3.2;
 
   if (d > Hart_id){
-    ROCC_INSTRUCTION (1, 0x31);; // start monitoring
+    ROCC_INSTRUCTION (1, 0x31); // start monitoring
     ROCC_INSTRUCTION (1, 0x70);
   }
+
+  uint64_t CSR = 0;
+  /* Testing CSR Registers */
+  asm volatile ("csrr %0, cycle"  : "=r"(CSR));
+  // asm volatile ("csrr %0, time"  : "=r"(CSR));
+  asm volatile ("csrr %0, instret"  : "=r"(CSR));
+  // asm volatile ("csrr %0, hpmcounter3"  : "=r"(CSR));
+  // asm volatile ("csrr %0, hpmcounter4"  : "=r"(CSR));
 
   /* Testing Floating Points */
   double e = (c - b + a) * 1.1;
@@ -93,6 +113,7 @@ int main(void)
   double h = (a - 0.05);
   double i = (f + 1.1);
   double j = a + b + c + d + e + f + g + h + i;
+
 
 
   if (j > Hart_id) {
