@@ -29,11 +29,10 @@ int main(void)
   ght_cfg_filter(0x01, 0x00, 0x03, 0x02); // lb
   ght_cfg_filter(0x01, 0x01, 0x03, 0x02); // lh
   ght_cfg_filter(0x01, 0x02, 0x03, 0x02); // lw
-  ght_cfg_filter(0x01, 0x03, 0x03, 0x02); // ld
   ght_cfg_filter(0x01, 0x04, 0x03, 0x02); // lbu
   ght_cfg_filter(0x01, 0x05, 0x03, 0x02); // lhu
+  ght_cfg_filter(0x01, 0x03, 0x03, 0x02); // ld
   ght_cfg_filter(0x01, 0x06, 0x03, 0x02); // lwu
-
   // Func: 0x02; 0x03; 0x04
   // Opcode: 0x07
   // Data path: LDQ - 0x02
@@ -63,7 +62,7 @@ int main(void)
   ght_cfg_mapper(0x02, 0b0001);
 
   // Insepct CSR read operations
-  // GID: 0x03
+  // GID: 0x01
   // Func: 0x02
   // Opcode: 0x73
   // Data path: PRFs - 0x01
@@ -71,6 +70,15 @@ int main(void)
   // Map: GID == 0x03 to SE == 0x00
   ght_cfg_mapper(0x03, 0b0001);
 
+  // Insepct atomic operations
+  // GID: 0x2F
+  // Func: 0x02; 0x03
+  // Opcode: 0x2F
+  // Data path: LDQ - 0x02
+  ght_cfg_filter(0x01, 0x02, 0x2F, 0x02); // 32-bit
+  ght_cfg_filter(0x01, 0x03, 0x2F, 0x02); // 64-bit
+  // Map: GID == 0x01 to SE == 0x00
+  ght_cfg_mapper (0x01, 0b0001);
 
 
   // se: 00, end_id: 0x01, scheduling: rr, start_id: 0x01
@@ -101,11 +109,9 @@ int main(void)
   uint64_t CSR = 0;
   /* Testing CSR Registers */
   asm volatile ("csrr %0, cycle"  : "=r"(CSR));
-  // asm volatile ("csrr %0, time"  : "=r"(CSR));
   asm volatile ("csrr %0, instret"  : "=r"(CSR));
-  // asm volatile ("csrr %0, hpmcounter3"  : "=r"(CSR));
-  // asm volatile ("csrr %0, hpmcounter4"  : "=r"(CSR));
-
+  asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
+  
   /* Testing Floating Points */
   double e = (c - b + a) * 1.1;
   double f = ((e + d) * (d - b)) / 2.1;
@@ -115,9 +121,37 @@ int main(void)
   double j = a + b + c + d + e + f + g + h + i;
 
 
-
-  if (j > Hart_id) {
+  // Test the correctness of the CSR insts
+  if ((j * Hart_id) == 0) { 
     //=================== Post execution ===================//
+    // Testing LR.W & SC.W
+    __asm__ volatile(
+        "li   t0,   0x81000000;"     // write pointer
+        "li   t1,   0x55555000;"     // data
+        "li   a5,   0x81000FFF;"     // end address
+        "j    .loop_store;");
+
+    __asm__ volatile(
+        ".loop_store:"
+        "lr.w a0,   (t0);"            // load reserved word from memory to a0
+        "sc.w a0,   t1,   (t0);"      // attempt to store t1 at t0
+        "bnez a0,   .loop_store;"     // retry if sc.w failed
+        "addi t1,   t1,   1;"         // data + 1
+        "addi t0,   t0,   0x100;"     // write address + 0x100
+        "blt  t0,   a5,  .loop_store;");
+
+    __asm__ volatile(
+        "li   t0,   0x81000000;"     // read pointer
+        "li   a5,   0x81000FFF;"     // end address
+        "j    .loop_load;");
+
+    __asm__ volatile(
+        ".loop_load:"
+        "lr.w       t1,   (t0);"      // load word from memory to t1
+        "addi t0,   t0,   0x100;"     // read address + 0x100
+        "blt  t0,   a5,  .loop_load;");
+
+
     // Testing LD & SD
     __asm__ volatile(
                       "li   t0,   0x81000000;"         // write pointer
@@ -221,6 +255,33 @@ int main(void)
                       "lb         t1,   (t0);"
                       "addi t0,   t0,   0x10;"         // write address + 0x10
                       "blt  t0,   a5,  .loop_load4;");
+
+    // Testing LR.D & SC.D
+    __asm__ volatile(
+        "li   t0,   0x81000000;"     // write pointer
+        "li   t1,   0x55555000;"     // data
+        "li   a5,   0x81000FFF;"     // end address
+        "j    .loop_store5;");
+
+    __asm__ volatile(
+        ".loop_store5:"
+        "lr.d a0,   (t0);"            // load reserved word from memory to a0
+        "sc.d a0,   t1,   (t0);"      // attempt to store t1 at t0
+        "bnez a0,   .loop_store;"     // retry if sc.w failed
+        "addi t1,   t1,   1;"         // data + 1
+        "addi t0,   t0,   0x100;"     // write address + 0x100
+        "blt  t0,   a5,  .loop_store5;");
+
+    __asm__ volatile(
+        "li   t0,   0x81000000;"     // read pointer
+        "li   a5,   0x81000FFF;"     // end address
+        "j    .loop_load5;");
+
+    __asm__ volatile(
+        ".loop_load5:"
+        "lr.d       t1,   (t0);"      // load word from memory to t1
+        "addi t0,   t0,   0x100;"     // read address + 0x100
+        "blt  t0,   a5,  .loop_load5;");
   }
 
 
