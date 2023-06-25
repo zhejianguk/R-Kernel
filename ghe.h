@@ -147,3 +147,10 @@ static inline uint64_t ghe_rsur_status ()
     // 0b11: snapshot and results recieved
     // 0b10: wrong status
 }
+
+static inline uint64_t elu_checkstatus ()
+{
+  uint64_t status;
+  ROCC_INSTRUCTION_D (1, status, 0x66);
+  return status; 
+}
