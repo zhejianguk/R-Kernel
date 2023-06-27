@@ -272,6 +272,15 @@ int __main(void)
       case 0x02:
         checker(Hart_id);
       break;
+
+      case 0x03:
+        checker(Hart_id);
+      break;
+
+      case 0x04:
+        checker(Hart_id);
+      break;
+
       
       default:
       break;
@@ -340,36 +349,23 @@ int r_ini (int num_checkers){
   ght_cfg_se(0x00, 0x01, 0x01, 0x01);
   // se: 01, end_id: 0x02, scheduling: rr, start_id: 0x02
   ght_cfg_se(0x01, 0x02, 0x01, 0x02);
+  // se: 02, end_id: 0x03, scheduling: rr, start_id: 0x03
+  ght_cfg_se(0x02, 0x03, 0x01, 0x03);
+  // se: 03, end_id: 0x04, scheduling: rr, start_id: 0x04
+  ght_cfg_se(0x03, 0x04, 0x01, 0x04);
 
-  // Map: GIDs
-  // Core 1's packets
-  ght_cfg_mapper (0b10001001, 0b0001);
-  ght_cfg_mapper (0b10001010, 0b0001);
-  ght_cfg_mapper (0b10001011, 0b0001);
-  ght_cfg_mapper (0b01001001, 0b0001);
-  ght_cfg_mapper (0b01001010, 0b0001);
-  ght_cfg_mapper (0b01001011, 0b0001);
-  // Core 1's snapshot
-  ght_cfg_mapper (0b10001111, 0b0001);
-  ght_cfg_mapper (0b01001111, 0b0001);
-  ght_cfg_mapper (0b11001111, 0b0001);
+  // Map: GIDs for cores
+  r_set_corex_p_s(1);
+  r_set_corex_p_s(2);
+  // r_set_corex_p_s(3);
+  // r_set_corex_p_s(4);
 
-  // Core 2's packets
-  ght_cfg_mapper (0b10010001, 0b0010);
-  ght_cfg_mapper (0b10010010, 0b0010);
-  ght_cfg_mapper (0b10010011, 0b0010);
-  ght_cfg_mapper (0b01010001, 0b0010);
-  ght_cfg_mapper (0b01010010, 0b0010);
-  ght_cfg_mapper (0b01010011, 0b0010);
-
-  // Core 2's snapshot
-  ght_cfg_mapper (0b10010111, 0b0010);
-  ght_cfg_mapper (0b01010111, 0b0010);
-  ght_cfg_mapper (0b11010111, 0b0010);
 
   // Shared snapshots
   ght_cfg_mapper (0b00001111, 0b0011);
   ght_cfg_mapper (0b00010111, 0b0011);
+  // ght_cfg_mapper (0b00011111, 0b0110);
+  // ght_cfg_mapper (0b00100111, 0b1100);
 
   // To do: add RVC commands
   // ...

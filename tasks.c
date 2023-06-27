@@ -36,6 +36,7 @@ int checker (int hart_id)
 
 	ghe_initailised(0);
 	ghe_release();
+  ght_unset_satp_priv();
 
   while(1){
 

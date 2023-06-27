@@ -197,3 +197,20 @@ static inline void ght_set_numberofcheckers (uint64_t num)
 {
   ROCC_INSTRUCTION_S (1, num, 0x1c);
 }
+
+
+static inline void r_set_corex_p_s (uint64_t core_id)
+{
+  // Core x's packets
+  uint64_t mask = core_id << 3;
+  ght_cfg_mapper (0b10000001 | mask, 0b0001 << (core_id - 1));
+  ght_cfg_mapper (0b10000010 | mask, 0b0001 << (core_id - 1));
+  ght_cfg_mapper (0b10000011 | mask, 0b0001 << (core_id - 1));
+  ght_cfg_mapper (0b01000001 | mask, 0b0001 << (core_id - 1));
+  ght_cfg_mapper (0b01000010 | mask, 0b0001 << (core_id - 1));
+  ght_cfg_mapper (0b01000011 | mask, 0b0001 << (core_id - 1));
+  // Core x's snapshot
+  ght_cfg_mapper (0b10000111 | mask, 0b0001 << (core_id - 1));
+  ght_cfg_mapper (0b01000111 | mask, 0b0001 << (core_id - 1));
+  ght_cfg_mapper (0b11000111 | mask, 0b0001 << (core_id - 1));
+}
