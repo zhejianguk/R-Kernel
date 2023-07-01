@@ -163,7 +163,7 @@ int main(void)
                         "addi t1,   t1,   1;"            // data + 1
                         "addi t0,   t0,   0x10;"         // write address + 0x10
                         "blt  t0,   a5,  .loop_store3;");
-      ROCC_INSTRUCTION_S (1, 0X08, 0x70); // Sys_call_back
+      // ROCC_INSTRUCTION_S (1, 0X08, 0x70); // Sys_call_back
 
       __asm__ volatile(
                         "li   t0,   0x81000000;"         // read pointer
