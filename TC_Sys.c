@@ -7,7 +7,7 @@
 #include "tasks.h"
 
 
-#define NUM_CHECKERS 2
+#define NUM_CHECKERS 3
 int uart_lock;
 
 int r_ini (int num_checkers);
@@ -313,6 +313,17 @@ int r_ini (int num_checkers){
   ght_cfg_filter(0x01, 0x02, 0x07, 0x02); // flw
   ght_cfg_filter(0x01, 0x03, 0x07, 0x02); // fld
   ght_cfg_filter(0x01, 0x04, 0x07, 0x02); // flq
+  // C.load operations 
+  // GID: 0x01
+  // Func: 0x02; 0x03; 0x04; 0x05; 0x06; 0x07
+  // MSB: 0
+  // Opcode: 0x00
+  ght_cfg_filter_rvc(0x01, 0x02, 0x00, 0x00, 0x02); // c.fld, c.lq
+  ght_cfg_filter_rvc(0x01, 0x03, 0x00, 0x00, 0x02); // c.fld, c.lq
+  ght_cfg_filter_rvc(0x01, 0x04, 0x00, 0x00, 0x02); // c.lw
+  ght_cfg_filter_rvc(0x01, 0x05, 0x00, 0x00, 0x02); // c.lw
+  ght_cfg_filter_rvc(0x01, 0x06, 0x00, 0x00, 0x02); // c.flw, c.ld
+  ght_cfg_filter_rvc(0x01, 0x07, 0x00, 0x00, 0x02); // c.flw, c.ld
 
   // Insepct store operations 
   // GID: 0x02
@@ -329,6 +340,17 @@ int r_ini (int num_checkers){
   ght_cfg_filter(0x02, 0x02, 0x27, 0x03); // fsw
   ght_cfg_filter(0x02, 0x03, 0x27, 0x03); // fsd
   ght_cfg_filter(0x02, 0x04, 0x27, 0x03); // fsq
+  // C.sotre operations 
+  // GID: 0x02
+  // Func: 0x02; 0x03; 0x04; 0x05; 0x06; 0x07
+  // MSB: 1
+  // Opcode: 0x00
+  ght_cfg_filter_rvc(0x01, 0x02, 0x00, 0x01, 0x02); // c.fsd, c.sq
+  ght_cfg_filter_rvc(0x01, 0x03, 0x00, 0x01, 0x02); // c.fsd, c.sq
+  ght_cfg_filter_rvc(0x01, 0x04, 0x00, 0x01, 0x02); // c.sw
+  ght_cfg_filter_rvc(0x01, 0x05, 0x00, 0x01, 0x02); // c.sw
+  ght_cfg_filter_rvc(0x01, 0x06, 0x00, 0x00, 0x02); // c.fsw, c.sd
+  ght_cfg_filter_rvc(0x01, 0x07, 0x00, 0x00, 0x02); // c.fsw, c.sd
 
   // Insepct CSR read operations
   // GID: 0x01
@@ -357,14 +379,14 @@ int r_ini (int num_checkers){
   // Map: GIDs for cores
   r_set_corex_p_s(1);
   r_set_corex_p_s(2);
-  // r_set_corex_p_s(3);
+  r_set_corex_p_s(3);
   // r_set_corex_p_s(4);
 
 
   // Shared snapshots
-  ght_cfg_mapper (0b00001111, 0b0011);
+  ght_cfg_mapper (0b00001111, 0b0101);
   ght_cfg_mapper (0b00010111, 0b0011);
-  // ght_cfg_mapper (0b00011111, 0b0110);
+  ght_cfg_mapper (0b00011111, 0b0110);
   // ght_cfg_mapper (0b00100111, 0b1100);
 
   // To do: add RVC commands
