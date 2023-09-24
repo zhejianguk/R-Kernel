@@ -27,99 +27,38 @@ int main(void)
   ROCC_INSTRUCTION (1, 0x31); // start monitoring
   ROCC_INSTRUCTION_S (1, 0X01, 0x70); // ISAX_Go
   //===================== Execution =====================//
+  printf("Testing the Malloc functions ... \r\n");
+
+  int *ptr = NULL;
+  int ptr_size = 32;
+  int sum = 0;
+  int base;
 
 
-  float a = 0.1;
-  float b = 0.2;
-  float c = 0.3;
+  ptr = (int*) malloc(ptr_size * sizeof(int));
+  asm volatile ("csrr %0, mhartid"  : "=r"(base));
 
-  /* Testing RCU */
-  float d = (a + b + c) * 1.7 * 3.2;
+
+
+  // if memory cannot be allocated
+  if(ptr == NULL) {
+    printf("Error! memory not allocated. \r\n");
+    exit(0);
+  }
   
-  uint64_t CSR = 0;
-  /* Testing CSR Registers */
-  asm volatile ("csrr %0, cycle"  : "=r"(CSR));
-  asm volatile ("csrr %0, instret"  : "=r"(CSR));
-  asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
-  
-  /* Testing Floating Points */
-  double e = (c - b + a) * 1.1;
-  double f = ((e + d) * (d - b)) / 2.1;
-  double g = (c + 1.1)/2;
-  double h = (a - 0.05);
-  double i = (f + 1.1);
-  double j = a + b + c + d + e + f + g + h + i;
-
-
- 
-
-  // Test the correctness of the CSR insts
-  if ((j * Hart_id) == 0) {
-    for (int i; i < 3; i++){
-      e = i * 1.2 + 3;
-      b = j + 1.7;
-      a = (e + b) * 2.2;
-      asm volatile ("csrr %0, cycle"  : "=r"(CSR));
-      asm volatile ("csrr %0, instret"  : "=r"(CSR));
-      asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
-      a = a + CSR;
-
-      if (a > Hart_id) {
-      //=================== Post execution ===================//   
-      // Testing LD & SD
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // write pointer
-                        "li   t1,   0x55552000;"         // data
-                        "li   t2,   0x55553000;"
-                        "j    .loop_store1;");
-
-      __asm__ volatile(
-                        ".loop_store1:"
-                        "li   a5,   0x810008FF;"
-                        "lr.w a0,   (t0);"            // load reserved word from memory to a0
-                        "sc.w a0,   t1,   (t0);"      // attempt to store t1 at t0
-                        "sd         t1,   (t0);"
-                        "sd         t2,   16(t0);"
-                        "sd         t1,   32(t0);"
-                        "sd         t2,   64(t0);"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        // "ecall;"
-                        "blt  t0,   a5,  .loop_store1;");
-
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "j    .loop_load1;");
-
-      __asm__ volatile(
-                        ".loop_load1:"
-                        "li   a5,   0x810008FF;"
-                        "lr.w a0,   (t0);"            // load reserved word from memory to a0
-                        "sc.w a0,   t1,   (t0);"      // attempt to store t1 at t0
-                        "ld         t1,   (t0);"
-                        "ld         t2,   16(t0);"
-                        "ld         t1,   32(t0);"
-                        "ld         t2,   64(t0);"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_load1;");
-
-    __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "li   t1,   0x81000100;"
-                        "li   t2,   1;"
-                        "j    .loop_add1;");
-
-      __asm__ volatile(
-                        ".loop_add1:"
-                        "li   a5,   0x810008FF;"
-                        "amoadd.w.aq t1,   t2, (t0);"    // load reserved word from memory to a0
-                        "addi t2,   t2,   0x01;"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_add1;");
-
-      }
-    }
+  for (int i = 0; i < ptr_size; i++)
+  {
+    *(ptr + i) = base + i;
   }
 
+  for (int i = 0; i < ptr_size; i++)
+  {
+    sum = sum + *(ptr+i);
+  }
+
+  free(ptr);
+
+  printf("The calculation result is: %x \r\n", sum);
 
 
 
@@ -272,7 +211,7 @@ int r_ini (int num_checkers){
   // GID: 0x2F
   // Func: 0x02; 0x03
   // Opcode: 0x2F
-  // Data path: STQ + PRFs - 0x00
+  // Data path: LDQ - 0x02
   ght_cfg_filter(0x01, 0x02, 0x2F, 0x05); // 32-bit
   ght_cfg_filter(0x01, 0x03, 0x2F, 0x05); // 64-bit
 

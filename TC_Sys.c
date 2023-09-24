@@ -131,7 +131,6 @@ int main(void)
                         ".loop_store2:"
                         "li   a5,   0x81000FFF;"
                         "sw         t1,   (t0);"
-                        "amoswap.w  a4,   a3,  (s1);"
                         "addi t1,   t1,   1;"            // data + 1
                         "addi t0,   t0,   0x10;"         // write address + 0x10
                         "blt  t0,   a5,  .loop_store2;");
@@ -150,7 +149,7 @@ int main(void)
       
 
       // Testing LH & SH
-      ROCC_INSTRUCTION_S (1, 0X04, 0x70); // Sys_call
+      // ROCC_INSTRUCTION_S (1, 0X04, 0x70); // Sys_call
       __asm__ volatile(
                         "li   t0,   0x81000000;"         // write pointer
                         "li   t1,   0x55555000;"         // data
@@ -183,7 +182,7 @@ int main(void)
       __asm__ volatile(
                         "li   t0,   0x81000000;"         // write pointer
                         "li   t1,   0x55555000;"         // data
-                        "li   t2,   0x81000000;"         // Read pointer
+                        "li   t2,   0x81000000;"         // Read pointerROCC_INSTRUCTION_S
                         "j    .loop_store4;");
 
       __asm__ volatile(
@@ -367,8 +366,8 @@ int r_ini (int num_checkers){
   // Func: 0x02; 0x03
   // Opcode: 0x2F
   // Data path: LDQ - 0x02
-  ght_cfg_filter(0x01, 0x02, 0x2F, 0x02); // 32-bit
-  ght_cfg_filter(0x01, 0x03, 0x2F, 0x02); // 64-bit
+  ght_cfg_filter(0x01, 0x02, 0x2F, 0x05); // 32-bit
+  ght_cfg_filter(0x01, 0x03, 0x2F, 0x05); // 64-bit
 
   // se: 00, end_id: 0x01, scheduling: rr, start_id: 0x01
   ght_cfg_se(0x00, 0x01, 0x01, 0x01);
