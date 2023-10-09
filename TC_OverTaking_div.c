@@ -29,12 +29,12 @@ int main(void)
   //===================== Execution =====================//
 
 
-  float a = 0.1;
-  float b = 0.2;
-  float c = 0.3;
+  int a = 1;
+  int b = 2;
+  int c = 3;
 
   /* Testing RCU */
-  float d = (a + b + c) * 1.7 * 3.2;
+  int d = (a + b + c) * 1.7 * 3.2;
   
   uint64_t CSR = 0;
   /* Testing CSR Registers */
@@ -42,7 +42,7 @@ int main(void)
   asm volatile ("csrr %0, instret"  : "=r"(CSR));
   asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
   
-  /* Testing Floating Points */
+  /* Testing inting Points */
   double e = (c - b + a) * 1.1;
   double f = ((e + d) * (d - b)) / 2.1;
   double g = (c + 1.1)/2;
@@ -83,8 +83,6 @@ int main(void)
                         "sd         t1,   32(t0);"
                         "sd         t2,   64(t0);"
                         "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "frflags    a4;"
-                        "fsflags    a4;"
                         // "ecall;"
                         "blt  t0,   a5,  .loop_store1;");
 
@@ -101,10 +99,6 @@ int main(void)
                         "ld         t2,   16(t0);"
                         "ld         t1,   32(t0);"
                         "ld         t2,   64(t0);"
-                        "frflags    a4;"
-                        "li         a4,   0x55;"
-                        "fsflags    a4;"
-                        "divu       t2,t2,t1;"
                         "addi t0,   t0,   0x10;"         // write address + 0x10
                         "blt  t0,   a5,  .loop_load1;");
 
@@ -273,7 +267,6 @@ int r_ini (int num_checkers){
   // Opcode: 0x73
   // Data path: PRFs - 0x01
   ght_cfg_filter(0x03, 0x02, 0x73, 0x01);
-  ght_cfg_filter(0x03, 0x01, 0x73, 0x01);
 
   // Insepct atomic operations
   // GID: 0x2F

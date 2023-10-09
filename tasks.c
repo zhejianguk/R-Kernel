@@ -16,8 +16,9 @@ int checker (int hart_id)
   ghe_initailised(1);
 
   //===================== Execution =====================//
+  ROCC_INSTRUCTION (1, 0x75); // Record context
+  ROCC_INSTRUCTION (1, 0x73); // Store context from main core
   ROCC_INSTRUCTION (1, 0x64); // Record PC
-
   for (int sel_elu = 0; sel_elu < 2; sel_elu ++){
     ROCC_INSTRUCTION_S (1, sel_elu, 0x65);
 
@@ -34,7 +35,9 @@ int checker (int hart_id)
     }
   }
 
-	ghe_initailised(0);
+
+  ROCC_INSTRUCTION (1, 0x72); // Store context from checker core
+  ROCC_INSTRUCTION (1, 0x60);
 	ghe_release();
   ght_unset_satp_priv();
 

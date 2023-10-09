@@ -18,7 +18,6 @@ static inline uint64_t ghe_status ()
 static inline uint64_t ghe_asR ()
 {
   ROCC_INSTRUCTION_S (1, 0x01, 0x01);
-
 }
 
 
