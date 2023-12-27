@@ -15,7 +15,12 @@ int checker (int hart_id)
   ghe_go();
   ghe_initailised(1);
 
+  ghe_perf_ctrl(0x01);
+  ghe_perf_ctrl(0x00);
+
+
   //===================== Execution =====================//
+  if (hart_id == 1){
   ROCC_INSTRUCTION (1, 0x75); // Record context
   ROCC_INSTRUCTION (1, 0x73); // Store context from main core
   ROCC_INSTRUCTION (1, 0x64); // Record PC
@@ -38,8 +43,45 @@ int checker (int hart_id)
 
   ROCC_INSTRUCTION (1, 0x72); // Store context from checker core
   ROCC_INSTRUCTION (1, 0x60);
-	ghe_release();
+
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+
+
+
+  uint64_t perf_val = 0;
+  ghe_perf_ctrl(0x07<<1);
+  perf_val = ghe_perf_read();
+  printf("Perf: N.CP = %d \r\n", perf_val);
+
+  ghe_perf_ctrl(0x01<<1);
+  perf_val = ghe_perf_read();
+  printf("Perf: N.Checking = %d \r\n", perf_val);
+
+  ghe_perf_ctrl(0x02<<1);
+  perf_val = ghe_perf_read();
+  printf("Perf: N.PostChecking = %d \r\n", perf_val);
+
+  ghe_perf_ctrl(0x03<<1);
+  perf_val = ghe_perf_read();
+  printf("Perf: N.OtherThread = %d \r\n", perf_val);
+
+  ghe_perf_ctrl(0x04<<1);
+  perf_val = ghe_perf_read();
+  printf("Perf: N.NonChecking = %d \r\n", perf_val);
+
+  }
+
+  
+  while (ghe_checkght_status() != 0x02){
+  }
+
+  ghe_release();
   ght_unset_satp_priv();
+
 
   while(1){
 

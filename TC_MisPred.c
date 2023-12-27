@@ -7,7 +7,7 @@
 #include "tasks.h"
 
 
-#define NUM_CHECKERS 2
+#define NUM_CHECKERS 1
 int uart_lock;
 
 int r_ini (int num_checkers);
@@ -27,109 +27,39 @@ int main(void)
   ROCC_INSTRUCTION (1, 0x31); // start monitoring
   ROCC_INSTRUCTION_S (1, 0X01, 0x70); // ISAX_Go
   //===================== Execution =====================//
+  asm volatile ("csrr %0, mhartid" : "=r"(Hart_id));
 
-
-  float a = 0.1;
-  float b = 0.2;
-  float c = 0.3;
-
-  /* Testing RCU */
-  float d = (a + b + c) * 1.7 * 3.2;
-  
-  uint64_t CSR = 0;
-  /* Testing CSR Registers */
-  asm volatile ("csrr %0, cycle"  : "=r"(CSR));
-  asm volatile ("csrr %0, instret"  : "=r"(CSR));
-  asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
-  
-  /* Testing Floating Points */
-  double e = (c - b + a) * 1.1;
-  double f = ((e + d) * (d - b)) / 2.1;
-  double g = (c + 1.1)/2;
-  double h = (a - 0.05);
-  double i = (f + 1.1);
-  double j = a + b + c + d + e + f + g + h + i;
-
-
- 
-
-  // Test the correctness of the CSR insts
-  if ((j * Hart_id) == 0) {
-    for (int i; i < 3; i++){
-      e = i * 1.2 + 3;
-      b = j + 1.7;
-      a = (e + b) * 2.2;
-      asm volatile ("csrr %0, cycle"  : "=r"(CSR));
-      asm volatile ("csrr %0, instret"  : "=r"(CSR));
-      asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
-      a = a + CSR;
-
-      if (a > Hart_id) {
-      //=================== Post execution ===================//   
-      // Testing LD & SD
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // write pointer
-                        "li   t1,   0x55552000;"         // data
-                        "li   t2,   0x55553000;"
-                        "j    .loop_store1;");
+  __asm__ volatile(
+                    "li   t0,   0x81000000;"     // write pointer
+                    "li   t1,   0x55555000;"     // data
+                    "li   a5,   0x81000FFF;"     // end address
+                    "j    .loop_store;");
 
       __asm__ volatile(
-                        ".loop_store1:"
-                        "li   a5,   0x810008FF;"
-                        "lr.w a0,   (t0);"            // load reserved word from memory to a0
-                        "sc.w a0,   t1,   (t0);"      // attempt to store t1 at t0
-                        "sd         t1,   (t0);"
-                        "sd         t2,   16(t0);"
-                        "sd         t1,   32(t0);"
-                        "sd         t2,   64(t0);"
-                        "divw       t3,   t1, t2;"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "frflags    a4;"
-                        "fsflags    a4;"
-                        // "ecall;"
-                        "blt  t0,   a5,  .loop_store1;");
+                    ".loop_store:"
+                    "mv t2, %[hartid_value];"
+                    "sd a0,   (t0);"            // load reserved word from memory to a0
+                    "addi t1,   t1,   1;"         // data + 1
+                    "addi t0,   t0,   0x100;"     // write address + 0x100
+                    "bgeu t0,   t2,  .mis;"
+                        :
+    : [hartid_value] "r" (Hart_id)
+    : "t2", "t3", "t4", "t5", "t6");
+
+
 
       __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "j    .loop_load1;");
-
-      __asm__ volatile(
-                        ".loop_load1:"
-                        "li   a5,   0x810008FF;"
-                        "lr.w a0,   (t0);"            // load reserved word from memory to a0
-                        "sc.w a0,   t1,   (t0);"      // attempt to store t1 at t0
-                        "ld         t1,   (t0);"
-                        "ld         t2,   16(t0);"
-                        "ld         t1,   32(t0);"
-                        "ld         t2,   64(t0);"
-                        "mulw       t3,   t1, t2;"
-                        "divw       t3,   t1, t2;"
-                        "frflags    a4;"
-                        "li         a4,   0x55;"
-                        "fsflags    a4;"
-                        "divu       t2,t2,t1;"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_load1;");
-
-    __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "li   t1,   0x81000100;"
-                        "li   t2,   1;"
-                        "j    .loop_add1;");
-
-      __asm__ volatile(
-                        ".loop_add1:"
-                        "li   a5,   0x810008FF;"
-                        "amoadd.w.aq t1,   t2, (t0);"    // load reserved word from memory to a0
-                        "addi t2,   t2,   0x01;"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_add1;");
-
-      }
-    }
-  }
-
-
+                    ".loop_load:"
+                    "ld       t1,   (t0);"      // load word from memory to t1
+                    "addi t0,   t0,   0x100;"     // read address + 0x100
+                    "blt  t0,   a5,  .loop_load;");
+      
+            __asm__ volatile(
+                    ".mis:"
+                    "mul     t0,t1,t0;"
+                    "li   t0,   0x81000000;"     // read pointer
+                    "li   a5,   0x81000FFF;"     // end address
+                    );
 
 
   //=================== Post execution ===================//
@@ -276,13 +206,12 @@ int r_ini (int num_checkers){
   // Opcode: 0x73
   // Data path: PRFs - 0x01
   ght_cfg_filter(0x03, 0x02, 0x73, 0x01);
-  ght_cfg_filter(0x03, 0x01, 0x73, 0x01);
 
   // Insepct atomic operations
   // GID: 0x2F
   // Func: 0x02; 0x03
   // Opcode: 0x2F
-  // Data path: STQ + PRFs - 0x00
+  // Data path: LDQ - 0x02
   ght_cfg_filter(0x01, 0x02, 0x2F, 0x05); // 32-bit
   ght_cfg_filter(0x01, 0x03, 0x2F, 0x05); // 64-bit
 
@@ -297,15 +226,12 @@ int r_ini (int num_checkers){
 
   // Map: GIDs for cores
   r_set_corex_p_s(1);
-  r_set_corex_p_s(2);
+  // r_set_corex_p_s(2);
   // r_set_corex_p_s(3);
   // r_set_corex_p_s(4);
 
 
   // Shared snapshots
-  ght_cfg_mapper (0b00001111, 0b0011);
-  ght_cfg_mapper (0b00010111, 0b0011);
-
   // ght_cfg_mapper (0b00001111, 0b0011);
   // ght_cfg_mapper (0b00010111, 0b0011);
   // ght_cfg_mapper (0b00011111, 0b0110);

@@ -63,7 +63,6 @@ int main(void)
       asm volatile ("csrr %0, instret"  : "=r"(CSR));
       asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
       a = a + CSR;
-
       if (a > Hart_id) {
       //=================== Post execution ===================//
       // Testing LR.W & SC.W
@@ -80,7 +79,7 @@ int main(void)
                     "bnez a0,   .loop_store;"     // retry if sc.w failed
                     "addi t1,   t1,   1;"         // data + 1
                     "addi t0,   t0,   0x100;"     // write address + 0x100
-                    "blt  t0,   a5,  .loop_store;");
+                    "bgeu t0,   a5,  .loop_store;");
 
       __asm__ volatile(
                     "li   t0,   0x81000000;"     // read pointer
@@ -92,145 +91,6 @@ int main(void)
                     "lr.w       t1,   (t0);"      // load word from memory to t1
                     "addi t0,   t0,   0x100;"     // read address + 0x100
                     "blt  t0,   a5,  .loop_load;");
-
-
-      // Testing LD & SD
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // write pointer
-                        "li   t1,   0x55555000;"         // data
-                        "li   t2,   0x81000000;"         // Read pointer
-                        "j    .loop_store1;");
-
-      __asm__ volatile(
-                        ".loop_store1:"
-                        "li   a5,   0x81000FFF;"
-                        "sd         t1,   (t0);"
-                        "addi t1,   t1,   1;"            // data + 1
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_store1;");
-
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "j    .loop_load1;");
-
-      __asm__ volatile(
-                        ".loop_load1:"
-                        "li   a5,   0x81000FFF;"
-                        "ld         t1,   (t0);"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_load1;");
-
-      // Testing LW & SW
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // write pointer
-                        "li   t1,   0x55555000;"         // data
-                        "li   t2,   0x81000000;"         // Read pointer
-                        "j    .loop_store2;");
-
-      __asm__ volatile(
-                        ".loop_store2:"
-                        "li   a5,   0x81000FFF;"
-                        "sw         t1,   (t0);"
-                        "addi t1,   t1,   1;"            // data + 1
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_store2;");
-
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "j    .loop_load2;");
-
-      __asm__ volatile(
-                        ".loop_load2:"
-                        "li   a5,   0x81000FFF;"
-                        "lw         t1,   (t0);"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_load2;");
-
-      
-
-      // Testing LH & SH
-      // ROCC_INSTRUCTION_S (1, 0X04, 0x70); // Sys_call
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // write pointer
-                        "li   t1,   0x55555000;"         // data
-                        "li   t2,   0x81000000;"         // Read pointer
-                        "j    .loop_store3;");
-
-      __asm__ volatile(
-                        ".loop_store3:"
-                        "li   a5,   0x81000FFF;"
-                        "sh         t1,   (t0);"
-                        "addi t1,   t1,   1;"            // data + 1
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_store3;");
-      // ROCC_INSTRUCTION_S (1, 0X08, 0x70); // Sys_call_back
-
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "j    .loop_load3;");
-
-      __asm__ volatile(
-                        ".loop_load3:"
-                        "li   a5,   0x81000FFF;"
-                        "lh         t1,   (t0);"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_load3;");
-
-      
-
-      // Testing LB & SB
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // write pointer
-                        "li   t1,   0x55555000;"         // data
-                        "li   t2,   0x81000000;"         // Read pointerROCC_INSTRUCTION_S
-                        "j    .loop_store4;");
-
-      __asm__ volatile(
-                        ".loop_store4:"
-                        "li   a5,   0x81000FFF;"
-                        "sb         t1,   (t0);"
-                        "addi t1,   t1,   1;"            // data + 1
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_store4;");
-
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"         // read pointer
-                        "j    .loop_load4;");
-
-      __asm__ volatile(
-                        ".loop_load4:"
-                        "li   a5,   0x81000FFF;"
-                        "lb         t1,   (t0);"
-                        "addi t0,   t0,   0x10;"         // write address + 0x10
-                        "blt  t0,   a5,  .loop_load4;");
-
-      // Testing LR.D & SC.D
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"     // write pointer
-                        "li   t1,   0x55555000;"     // data
-                        "li   a5,   0x81000FFF;"     // end address
-                        "j    .loop_store5;");
-
-      __asm__ volatile(
-                        ".loop_store5:"
-                        "lr.d a0,   (t0);"            // load reserved word from memory to a0
-                        "sc.d a0,   t1,   (t0);"      // attempt to store t1 at t0
-                        "bnez a0,   .loop_store;"     // retry if sc.w failed
-                        "addi t1,   t1,   1;"         // data + 1
-                        "addi t0,   t0,   0x100;"     // write address + 0x100
-                        "blt  t0,   a5,  .loop_store5;");
-
-      __asm__ volatile(
-                        "li   t0,   0x81000000;"     // read pointer
-                        "li   a5,   0x81000FFF;"     // end address
-                        "j    .loop_load5;");
-
-      __asm__ volatile(
-                        ".loop_load5:"
-                        "lr.d       t1,   (t0);"      // load word from memory to t1
-                        "addi t0,   t0,   0x100;"     // read address + 0x100
-                        "blt  t0,   a5,  .loop_load5;");
-      
       
       }
     }

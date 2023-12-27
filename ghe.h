@@ -153,3 +153,17 @@ static inline uint64_t elu_checkstatus ()
   ROCC_INSTRUCTION_D (1, status, 0x66);
   return status; 
 }
+
+
+static inline void ghe_perf_ctrl (uint64_t ctrl_code)
+{
+  ROCC_INSTRUCTION_S (1,ctrl_code, 0x76);
+}
+
+
+static inline uint64_t ghe_perf_read ()
+{
+  uint64_t perf_val;
+  ROCC_INSTRUCTION_D (1, perf_val, 0x77);
+  return perf_val;
+}
