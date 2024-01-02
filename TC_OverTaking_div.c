@@ -23,6 +23,9 @@ int main(void)
   uint64_t Hart_id = 0;
   asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
   printf("[Boom-C%x]: Test is now started: \r\n", Hart_id);
+  ghe_perf_ctrl(0x01);
+  ghe_perf_ctrl(0x00); 
+
   ght_set_satp_priv();
   ROCC_INSTRUCTION (1, 0x31); // start monitoring
   ROCC_INSTRUCTION_S (1, 0X01, 0x70); // ISAX_Go
@@ -136,6 +139,15 @@ int main(void)
   while ((status = ght_get_status()) < 0x1FFFF) {
 
   }
+
+  uint64_t perf_val = 0;
+  ghe_perf_ctrl(0x07<<1);
+  perf_val = ghe_perf_read();
+  printf("Boom-Perf: Execution-time = %d \r\n", perf_val);
+
+  ghe_perf_ctrl(0x01<<1);
+  perf_val = ghe_perf_read();
+  printf("Boom-Perf: Sch-bloc-time = %d \r\n", perf_val);
 
   printf("[Boom-C%x]: Test is now completed. \r\n", Hart_id);
 	ght_unset_satp_priv();
