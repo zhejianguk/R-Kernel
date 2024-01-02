@@ -50,9 +50,6 @@ int main(void)
   double i = (f + 1.1);
   double j = a + b + c + d + e + f + g + h + i;
 
-
- 
-
   // Test the correctness of the CSR insts
   if ((j * Hart_id) == 0) {
     for (int i; i < 3; i++){
@@ -124,13 +121,9 @@ int main(void)
                         "addi t2,   t2,   0x01;"
                         "addi t0,   t0,   0x10;"         // write address + 0x10
                         "blt  t0,   a5,  .loop_add1;");
-
       }
     }
   }
-
-
-
 
   //=================== Post execution ===================//
   ROCC_INSTRUCTION (1, 0x32); // stop monitoring

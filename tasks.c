@@ -34,7 +34,9 @@ int checker (int hart_id)
   }
   
   while (ghe_checkght_status() != 0x02){
-    if ((ghe_rsur_status() & 0x01) == 0x01 ){
+    __asm__ volatile("fence rw, rw");
+    if ((ghe_rsur_status() & 0x08) == 0x08){
+      __asm__ volatile("fence rw, rw");
       ROCC_INSTRUCTION (1, 0x60);
       R_INSTRUCTION_JLR (3, 0x00);
     }

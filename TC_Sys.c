@@ -21,6 +21,9 @@ int main(void)
     // Wait for the checkers to be completed 
  	}
   uint64_t Hart_id = 0;
+  ghe_perf_ctrl(0x01);
+  ghe_perf_ctrl(0x00); 
+
   asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
   printf("[Boom-C%x]: Test is now started: \r\n", Hart_id);
   ght_set_satp_priv();
@@ -113,7 +116,17 @@ int main(void)
 
   }
 
+  uint64_t perf_val = 0;
+  ghe_perf_ctrl(0x07<<1);
+  perf_val = ghe_perf_read();
+  printf("Boom-Perf: Execution-time = %d \r\n", perf_val);
+
+  ghe_perf_ctrl(0x01<<1);
+  perf_val = ghe_perf_read();
+  printf("Perf: Sch-bloc-time = %d \r\n", perf_val);
+
   printf("[Boom-C%x]: Test is now completed. \r\n", Hart_id);
+
 	ght_unset_satp_priv();
 	ROCC_INSTRUCTION (1, 0x30); // reset monitoring
   return 0;
