@@ -8,6 +8,7 @@
 
 
 #define NUM_CHECKERS 1
+#define BOOM_ID 0
 int uart_lock;
 
 int r_ini (int num_checkers);
@@ -21,11 +22,13 @@ int main(void)
     // Wait for the checkers to be completed 
  	}
   uint64_t Hart_id = 0;
-  ghe_perf_ctrl(0x01);
-  ghe_perf_ctrl(0x00); 
+
 
   asm volatile ("csrr %0, mhartid"  : "=r"(Hart_id));
   printf("[Boom-C%x]: Test is now started: \r\n", Hart_id);
+  ghe_perf_ctrl(0x01);
+  ghe_perf_ctrl(0x00); 
+  debug_bp_reset();
   ght_set_satp_priv();
   ROCC_INSTRUCTION (1, 0x31); // start monitoring
   ROCC_INSTRUCTION_S (1, 0X01, 0x70); // ISAX_Go
@@ -111,21 +114,45 @@ int main(void)
   __asm__ volatile("nop");
 
 
+  uint64_t perf_val_CC = 0;
+	uint64_t perf_val_SB = 0;
+	uint64_t perf_val_SS = 0;
+	uint64_t perf_val_CS = 0;
+	uint64_t perf_val_OT = 0;
+  uint64_t bp_checker  = debug_bp_checker();
+  uint64_t bp_cdc = debug_bp_cdc();
+  uint64_t bp_filter = debug_bp_filter();
+
+	ghe_perf_ctrl(0x07<<1);
+	perf_val_CC = ghe_perf_read();
+	ghe_perf_ctrl(0x01<<1);
+	perf_val_SB = ghe_perf_read();
+	ghe_perf_ctrl(0x02<<1);
+	perf_val_SS = ghe_perf_read();
+	ghe_perf_ctrl(0x03<<1);
+	perf_val_CS = ghe_perf_read();
+	ghe_perf_ctrl(0x04<<1);
+	perf_val_OT = ghe_perf_read();
+
   uint64_t status;
   while ((status = ght_get_status()) < 0x1FFFF) {
 
   }
 
-  uint64_t perf_val = 0;
-  ghe_perf_ctrl(0x07<<1);
-  perf_val = ghe_perf_read();
-  printf("Boom-Perf: Execution-time = %d \r\n", perf_val);
+ 
 
-  ghe_perf_ctrl(0x01<<1);
-  perf_val = ghe_perf_read();
-  printf("Perf: Sch-bloc-time = %d \r\n", perf_val);
+	lock_acquire(&uart_lock);
+	printf("================ PERF: BOOM%x ================\r\n", BOOM_ID);
+	printf("[Boom-%x]: Perf: ExecutionTime = %ld \r\n", BOOM_ID, perf_val_CC);
+	printf("[Boom-%x]: Perf: SchedulingStateTime = %ld \r\n", BOOM_ID, perf_val_SS);
+	printf("[Boom-%x]: Perf: SchedulingBlockTime = %ld \r\n", BOOM_ID, perf_val_SB);
+	printf("[Boom-%x]: Perf: CheckingStateTime = %ld \r\n", BOOM_ID, perf_val_CS);
+	printf("[Boom-%x]: Perf: OtherThreadTime = %ld \r\n", BOOM_ID, perf_val_OT);
+  printf("[Boom-%x]: BP-Checker: %ld cycles; \r\n",BOOM_ID, bp_checker);
+	printf("[Boom-%x]: BP-CDC: %ld cycles; \r\n", BOOM_ID, bp_cdc);
+	printf("[Boom-%x]: BP-Filter: %ld cycles. \r\n", BOOM_ID, bp_filter);
 
-  printf("[Boom-C%x]: Test is now completed. \r\n", Hart_id);
+	lock_release(&uart_lock);
 
 	ght_unset_satp_priv();
 	ROCC_INSTRUCTION (1, 0x30); // reset monitoring
