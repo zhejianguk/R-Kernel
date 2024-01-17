@@ -20,7 +20,6 @@ int checker (int hart_id)
 
 
   //===================== Execution =====================//
-  if (hart_id == 1){
   ROCC_INSTRUCTION (1, 0x75); // Record context
   ROCC_INSTRUCTION (1, 0x73); // Store context from main core
   ROCC_INSTRUCTION (1, 0x64); // Record PC
@@ -34,9 +33,7 @@ int checker (int hart_id)
   }
   
   while (ghe_checkght_status() != 0x02){
-    __asm__ volatile("fence rw, rw");
     if ((ghe_rsur_status() & 0x08) == 0x08){
-      __asm__ volatile("fence rw, rw");
       ROCC_INSTRUCTION (1, 0x60);
       R_INSTRUCTION_JLR (3, 0x00);
     }
@@ -54,28 +51,29 @@ int checker (int hart_id)
 
 
 
-  uint64_t perf_val = 0;
-  ghe_perf_ctrl(0x07<<1);
-  perf_val = ghe_perf_read();
-  printf("Perf: N.CP = %d \r\n", perf_val);
+  if(0){
+    uint64_t perf_val = 0;
+    ghe_perf_ctrl(0x07<<1);
+    perf_val = ghe_perf_read();
+    printf("Perf: N.CP = %d \r\n", perf_val);
 
-  ghe_perf_ctrl(0x01<<1);
-  perf_val = ghe_perf_read();
-  printf("Perf: N.Checking = %d \r\n", perf_val);
+    ghe_perf_ctrl(0x01<<1);
+    perf_val = ghe_perf_read();
+    printf("Perf: N.Checking = %d \r\n", perf_val);
 
-  ghe_perf_ctrl(0x02<<1);
-  perf_val = ghe_perf_read();
-  printf("Perf: N.PostChecking = %d \r\n", perf_val);
+    ghe_perf_ctrl(0x02<<1);
+    perf_val = ghe_perf_read();
+    printf("Perf: N.PostChecking = %d \r\n", perf_val);
 
-  ghe_perf_ctrl(0x03<<1);
-  perf_val = ghe_perf_read();
-  printf("Perf: N.OtherThread = %d \r\n", perf_val);
+    ghe_perf_ctrl(0x03<<1);
+    perf_val = ghe_perf_read();
+    printf("Perf: N.OtherThread = %d \r\n", perf_val);
 
-  ghe_perf_ctrl(0x04<<1);
-  perf_val = ghe_perf_read();
-  printf("Perf: N.NonChecking = %d \r\n", perf_val);
-
+    ghe_perf_ctrl(0x04<<1);
+    perf_val = ghe_perf_read();
+    printf("Perf: N.NonChecking = %d \r\n", perf_val);
   }
+
 
   
   while (ghe_checkght_status() != 0x02){

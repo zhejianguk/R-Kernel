@@ -7,7 +7,7 @@
 #include "tasks.h"
 
 
-#define NUM_CHECKERS 1
+#define NUM_CHECKERS 2
 int uart_lock;
 
 int r_ini (int num_checkers);
@@ -299,7 +299,7 @@ int r_ini (int num_checkers){
 
   // Map: GIDs for cores
   r_set_corex_p_s(1);
-  // r_set_corex_p_s(2);
+  r_set_corex_p_s(2);
   // r_set_corex_p_s(3);
   // r_set_corex_p_s(4);
 
@@ -309,6 +309,10 @@ int r_ini (int num_checkers){
   // ght_cfg_mapper (0b00010111, 0b0011);
   // ght_cfg_mapper (0b00011111, 0b0110);
   // ght_cfg_mapper (0b00100111, 0b1100);
+
+
+  ght_cfg_mapper (0b00001111, 0b0011);
+  ght_cfg_mapper (0b00010111, 0b0011);
 
   // To do: add RVC commands
   // ...
