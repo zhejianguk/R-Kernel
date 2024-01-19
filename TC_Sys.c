@@ -106,6 +106,15 @@ int main(void)
 
 
   //=================== Post execution ===================//
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+  __asm__ volatile("nop");
+
   ROCC_INSTRUCTION (1, 0x32); // stop monitoring
   ROCC_INSTRUCTION_S (1, 0X02, 0x70); // ISAX_Stop
   __asm__ volatile("nop");
