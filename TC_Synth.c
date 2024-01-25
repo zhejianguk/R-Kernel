@@ -63,21 +63,26 @@ int main(void)
 
 
   //=================== Post execution ===================//
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
+  uint64_t core_id = 0;
+  asm volatile ("csrr %0, mhartid"  : "=r"(core_id));
 
-  ROCC_INSTRUCTION (1, 0x32); // stop monitoring
-  ROCC_INSTRUCTION_S (1, 0X02, 0x70); // ISAX_Stop
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
-  __asm__ volatile("nop");
+  if (core_id == 0){
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+
+    ROCC_INSTRUCTION (1, 0x32); // stop monitoring
+    ROCC_INSTRUCTION_S (1, 0X02, 0x70); // ISAX_Stop
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    __asm__ volatile("nop");
+    }
 
 
   uint64_t status;
